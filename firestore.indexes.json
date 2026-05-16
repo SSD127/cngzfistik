@@ -1,0 +1,97 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "cash_movements",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "customerId", "order": "ASCENDING"},
+        {"fieldPath": "date", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "sales",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "customerId", "order": "ASCENDING"},
+        {"fieldPath": "date", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "sales",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "customerId", "order": "ASCENDING"},
+        {"fieldPath": "isDeleted", "order": "ASCENDING"},
+        {"fieldPath": "date", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "purchases",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "customerId", "order": "ASCENDING"},
+        {"fieldPath": "date", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "stock_movements",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "warehouseId", "order": "ASCENDING"},
+        {"fieldPath": "pistachioTypeId", "order": "ASCENDING"},
+        {"fieldPath": "date", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "expenses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "category", "order": "ASCENDING"},
+        {"fieldPath": "date", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "expenses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "isDeleted", "order": "ASCENDING"},
+        {"fieldPath": "date", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "monthly_summaries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "customerId", "order": "ASCENDING"},
+        {"fieldPath": "year", "order": "DESCENDING"},
+        {"fieldPath": "month", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "inventory_deposits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "customerId", "order": "ASCENDING"},
+        {"fieldPath": "pistachioTypeId", "order": "ASCENDING"},
+        {"fieldPath": "isDeleted", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "price_history",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "pistachioTypeId", "order": "ASCENDING"},
+        {"fieldPath": "recordedAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "customer_pages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "customerId", "order": "ASCENDING"},
+        {"fieldPath": "isActive", "order": "ASCENDING"}
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

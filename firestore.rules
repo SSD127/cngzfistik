@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isOwner() {
+      return isAuthenticated() && getUserRole() == 'owner';
+    }
+
+    function isEmployee() {
+      return isAuthenticated() && getUserRole() in ['owner', 'employee'];
+    }
+
+    function isReadonly() {
+      return isAuthenticated() && getUserRole() in ['owner', 'employee', 'readonly'];
+    }
+
+    // Müşteri sayfası token erişimi — herkese açık okuma (Gereksinim 1.6)
+    match /customer_pages/{token} {
+      allow read: if true;
+      allow write: if isEmployee();
+    }
+
+    // Müşteriler
+    match /customers/{customerId} {
+      allow read: if isReadonly();
+      allow create, update: if isEmployee();
+      allow delete: if isOwner();
+    }
+
+    // Audit logs — değiştirilemez (Gereksinim 19.3)
+    match /audit_logs/{logId} {
+      allow read: if isOwner();
+      allow create: if isEmployee();
+      allow update, delete: if false;
+    }
+
+    // Transaction counters
+    match /transaction_counters/{type} {
+      allow read: if isEmployee();
+      allow write: if isEmployee();
+    }
+
+    // Satışlar — sadece iptal alanları güncellenebilir (Gereksinim 26.3)
+    match /sales/{saleId} {
+      allow read: if isReadonly();
+      allow create: if isEmployee();
+      allow update: if isEmployee()
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['isCancelled', 'cancellationReason', 'cancelledAt']);
+      allow delete: if false;
+    }
+
+    // Giderler
+    match /expenses/{expenseId} {
+      allow read: if isReadonly();
+      allow create, update: if isEmployee();
+      allow delete: if isOwner();
+    }
+
+    // System settings — sadece owner
+    match /system_settings/{doc} {
+      allow read: if isEmployee();
+      allow write: if isOwner();
+    }
+
+    // Genel kural — diğer koleksiyonlar
+    match /{collection}/{docId} {
+      allow read: if isReadonly();
+      allow write: if isEmployee();
+    }
+  }
+}
