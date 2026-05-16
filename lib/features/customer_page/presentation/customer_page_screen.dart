@@ -22,15 +22,13 @@ Future<Map<String, dynamic>?> customerPageData(Ref ref, String token) async {
   final cashSnap = await db
       .collection(FirestorePaths.cashMovements)
       .where('customerId', isEqualTo: customerId)
-      .where('isCancelled', isEqualTo: false)
       .orderBy('date', descending: true)
-      .limit(30)
+      .limit(50)
       .get();
 
   final inventorySnap = await db
       .collection(FirestorePaths.inventoryDeposits)
       .where('customerId', isEqualTo: customerId)
-      .where('isDeleted', isEqualTo: false)
       .get();
 
   // Fıstık cins adlarını çek
@@ -48,8 +46,12 @@ Future<Map<String, dynamic>?> customerPageData(Ref ref, String token) async {
 
   return {
     'customer': {'id': customerId, ...customerDoc.data()!},
-    'movements': cashSnap.docs.map((d) => {'id': d.id, ...d.data()}).toList(),
+    'movements': cashSnap.docs
+        .where((d) => d.data()['isCancelled'] != true)
+        .map((d) => {'id': d.id, ...d.data()})
+        .toList(),
     'inventory': inventorySnap.docs
+        .where((d) => d.data()['isDeleted'] != true)
         .map((d) => {'id': d.id, ...d.data()})
         .toList(),
     'typeNames': typeNames,

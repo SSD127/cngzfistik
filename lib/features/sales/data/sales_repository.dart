@@ -216,11 +216,19 @@ class SalesRepository {
     return _db
         .collection(FirestorePaths.sales)
         .where('customerId', isEqualTo: customerId)
-        .where('isDeleted', isEqualTo: false)
-        .orderBy('date', descending: true)
         .snapshots()
-        .map((snap) =>
-            snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+        .map((snap) {
+      final docs = snap.docs
+          .where((d) => d.data()['isDeleted'] != true)
+          .map((d) => {'id': d.id, ...d.data()})
+          .toList()
+        ..sort((a, b) {
+          final aDate = (a['date'] as Timestamp?)?.seconds ?? 0;
+          final bDate = (b['date'] as Timestamp?)?.seconds ?? 0;
+          return bDate.compareTo(aDate);
+        });
+      return docs;
+    });
   }
 }
 

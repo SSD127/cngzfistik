@@ -121,12 +121,20 @@ class InventoryRepository {
     return _db
         .collection(FirestorePaths.inventoryDeposits)
         .where('customerId', isEqualTo: customerId)
-        .where('isDeleted', isEqualTo: false)
-        .orderBy('date', descending: true)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => InventoryDepositModel.fromMap(d.id, d.data()))
-            .toList());
+        .map((snap) {
+      final docs = snap.docs
+          .where((d) => d.data()['isDeleted'] != true)
+          .toList()
+        ..sort((a, b) {
+          final aDate = (a.data()['date'] as Timestamp?)?.seconds ?? 0;
+          final bDate = (b.data()['date'] as Timestamp?)?.seconds ?? 0;
+          return bDate.compareTo(aDate);
+        });
+      return docs
+          .map((d) => InventoryDepositModel.fromMap(d.id, d.data()))
+          .toList();
+    });
   }
 }
 
