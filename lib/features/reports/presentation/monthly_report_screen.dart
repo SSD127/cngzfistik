@@ -14,54 +14,64 @@ Future<Map<String, dynamic>> monthlyReport(
   final from = DateTime(year, month, 1);
   final to = DateTime(year, month + 1, 1);
 
+  // isCancelled/isDeleted filtresi Dart'ta yapılıyor — composite index gerekmez
   final salesSnap = await db
       .collection(FirestorePaths.sales)
       .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(from))
       .where('date', isLessThan: Timestamp.fromDate(to))
-      .where('isCancelled', isEqualTo: false)
       .get();
 
   final purchasesSnap = await db
       .collection(FirestorePaths.purchases)
       .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(from))
       .where('date', isLessThan: Timestamp.fromDate(to))
-      .where('isCancelled', isEqualTo: false)
       .get();
 
   final expensesSnap = await db
       .collection(FirestorePaths.expenses)
       .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(from))
       .where('date', isLessThan: Timestamp.fromDate(to))
-      .where('isDeleted', isEqualTo: false)
       .get();
 
   final cashInSnap = await db
       .collection(FirestorePaths.cashMovements)
       .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(from))
       .where('date', isLessThan: Timestamp.fromDate(to))
-      .where('isCancelled', isEqualTo: false)
       .get();
+
+  final activeSales = salesSnap.docs
+      .where((d) => d.data()['isCancelled'] != true)
+      .toList();
+  final activePurchases = purchasesSnap.docs
+      .where((d) => d.data()['isCancelled'] != true)
+      .toList();
+  final activeExpenses = expensesSnap.docs
+      .where((d) => d.data()['isDeleted'] != true)
+      .toList();
+  final activeCash = cashInSnap.docs
+      .where((d) => d.data()['isCancelled'] != true)
+      .toList();
 
   int totalSalesCents = 0;
   int totalSalesKg = 0;
-  for (final d in salesSnap.docs) {
+  for (final d in activeSales) {
     totalSalesCents += (d.data()['totalAmountCents'] as int? ?? 0);
     totalSalesKg += ((d.data()['quantityKg'] as num? ?? 0) * 1000).round();
   }
 
   int totalPurchasesCents = 0;
-  for (final d in purchasesSnap.docs) {
+  for (final d in activePurchases) {
     totalPurchasesCents += (d.data()['totalAmountCents'] as int? ?? 0);
   }
 
   int totalExpensesCents = 0;
-  for (final d in expensesSnap.docs) {
+  for (final d in activeExpenses) {
     totalExpensesCents += (d.data()['amountCents'] as int? ?? 0);
   }
 
   int totalCashInCents = 0;
   int totalCashOutCents = 0;
-  for (final d in cashInSnap.docs) {
+  for (final d in activeCash) {
     final amount = d.data()['amountCents'] as int? ?? 0;
     if (amount > 0) {
       totalCashInCents += amount;
@@ -71,12 +81,12 @@ Future<Map<String, dynamic>> monthlyReport(
   }
 
   return {
-    'salesCount': salesSnap.docs.length,
+    'salesCount': activeSales.length,
     'totalSalesCents': totalSalesCents,
     'totalSalesKg': totalSalesKg,
-    'purchasesCount': purchasesSnap.docs.length,
+    'purchasesCount': activePurchases.length,
     'totalPurchasesCents': totalPurchasesCents,
-    'expensesCount': expensesSnap.docs.length,
+    'expensesCount': activeExpenses.length,
     'totalExpensesCents': totalExpensesCents,
     'totalCashInCents': totalCashInCents,
     'totalCashOutCents': totalCashOutCents,

@@ -29,11 +29,9 @@ class CustomerDetailScreen extends ConsumerWidget {
                 icon: const Icon(Icons.link),
                 tooltip: 'Müşteri linkini kopyala',
                 onPressed: () async {
-                  final token = await ref
-                      .read(customerRepositoryProvider)
-                      .getActiveToken(customerId);
-                  if (token == null) return;
-                  // Hangi domain'de çalışıyorsa oradan al
+                  final repo = ref.read(customerRepositoryProvider);
+                  String? token = await repo.getActiveToken(customerId);
+                  token ??= await repo.regenerateToken(customerId);
                   final base = Uri.base;
                   final url = '${base.scheme}://${base.host}'
                       '${base.port != 80 && base.port != 443 && base.port != 0 ? ':${base.port}' : ''}'
@@ -41,7 +39,11 @@ class CustomerDetailScreen extends ConsumerWidget {
                   await Clipboard.setData(ClipboardData(text: url));
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Link kopyalandı')),
+                      SnackBar(
+                        content: Text('Link kopyalandı: $url'),
+                        duration: const Duration(seconds: 4),
+                        action: SnackBarAction(label: 'Tamam', onPressed: () {}),
+                      ),
                     );
                   }
                 },

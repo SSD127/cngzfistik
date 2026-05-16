@@ -16,11 +16,13 @@ Future<List<Map<String, dynamic>>> cashFlowReport(
       .collection(FirestorePaths.cashMovements)
       .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
       .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
-      .where('isCancelled', isEqualTo: false)
       .orderBy('date', descending: true)
       .get();
 
-  return snap.docs.map((d) => {'id': d.id, ...d.data()}).toList();
+  return snap.docs
+      .where((d) => d.data()['isCancelled'] != true)
+      .map((d) => {'id': d.id, ...d.data()})
+      .toList();
 }
 
 class CashFlowReportScreen extends ConsumerStatefulWidget {

@@ -122,6 +122,11 @@ class _CustomerTile extends ConsumerWidget {
               tooltip: 'Müşteri linkini kopyala',
               onPressed: () => _copyLink(context, ref),
             ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              tooltip: 'Müşteriyi sil',
+              onPressed: () => _confirmDelete(context, ref),
+            ),
           ],
         ),
         onTap: () => context.go('/admin/customers/${customer.id}'),
@@ -130,16 +135,96 @@ class _CustomerTile extends ConsumerWidget {
   }
 
   Future<void> _copyLink(BuildContext context, WidgetRef ref) async {
-    final token = await ref
-        .read(customerRepositoryProvider)
-        .getActiveToken(customer.id);
-    if (token == null) return;
-    final url = 'https://fistik-komisyon.web.app/c/$token';
+    final repo = ref.read(customerRepositoryProvider);
+    // Aktif token yoksa otomatik oluştur
+    String? token = await repo.getActiveToken(customer.id);
+    token ??= await repo.regenerateToken(customer.id);
+
+    final base = Uri.base;
+    final url = '${base.scheme}://${base.host}'
+        '${base.port != 80 && base.port != 443 && base.port != 0 ? ':${base.port}' : ''}'
+        '/c/$token';
     await Clipboard.setData(ClipboardData(text: url));
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Link kopyalandı')),
+        SnackBar(
+          content: Text('Link kopyalandı: $url'),
+          duration: const Duration(seconds: 4),
+          action: SnackBarAction(label: 'Tamam', onPressed: () {}),
+        ),
       );
+    }
+  }
+
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    // Önce silinebilir mi kontrol et
+    final check = await ref
+        .read(customerRepositoryProvider)
+        .canDelete(customer.id);
+
+    if (!context.mounted) return;
+
+    if (!check.canDelete) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          icon: const Icon(Icons.block, color: Colors.red, size: 40),
+          title: const Text('Silinemez'),
+          content: Text(check.reason ?? 'Bu müşteri silinemez.'),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Tamam'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    // Onay diyaloğu
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: const Icon(Icons.warning_amber, color: Colors.orange, size: 40),
+        title: const Text('Müşteriyi Sil'),
+        content: Text(
+          '${customer.fullName} adlı müşteriyi silmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('İptal'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Evet, Sil'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      await ref
+          .read(customerRepositoryProvider)
+          .softDelete(customer.id, 'admin');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${customer.fullName} silindi')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Hata: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }

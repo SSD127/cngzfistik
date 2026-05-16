@@ -12,18 +12,19 @@ class ExpensesRepository {
   final FirebaseFirestore _db;
 
   Stream<List<ExpenseModel>> watchAll({ExpenseCategory? category}) {
+    // isDeleted Dart tarafında filtreleniyor — composite index gerekmez
     Query<Map<String, dynamic>> query = _db
         .collection(FirestorePaths.expenses)
-        .where('isDeleted', isEqualTo: false)
         .orderBy('date', descending: true);
 
-    if (category != null) {
-      query = query.where('category',
-          isEqualTo: ExpenseModel.categoryToString(category));
-    }
-
-    return query.snapshots().map((snap) =>
-        snap.docs.map((d) => ExpenseModel.fromMap(d.id, d.data())).toList());
+    return query.snapshots().map((snap) {
+      var docs = snap.docs.where((d) => d.data()['isDeleted'] != true);
+      if (category != null) {
+        final catStr = ExpenseModel.categoryToString(category);
+        docs = docs.where((d) => d.data()['category'] == catStr);
+      }
+      return docs.map((d) => ExpenseModel.fromMap(d.id, d.data())).toList();
+    });
   }
 
   Future<String> create({
