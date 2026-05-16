@@ -28,11 +28,30 @@ service cloud.firestore {
       allow write: if isEmployee();
     }
 
-    // Müşteriler
+    // Müşteriler — admin tam yetkili, herkese sadece okuma
+    // (token URL erişim kontrolü görevi görür)
     match /customers/{customerId} {
-      allow read: if isReadonly();
+      allow read: if true;
       allow create, update: if isEmployee();
       allow delete: if isOwner();
+    }
+
+    // Kasa hareketleri — herkese okuma (müşteri sayfası için)
+    match /cash_movements/{docId} {
+      allow read: if true;
+      allow write: if isEmployee();
+    }
+
+    // Emanet fıstık — herkese okuma (müşteri sayfası için)
+    match /inventory_deposits/{docId} {
+      allow read: if true;
+      allow write: if isEmployee();
+    }
+
+    // Fıstık cinsleri — herkese okuma (hassas veri değil)
+    match /pistachio_types/{docId} {
+      allow read: if true;
+      allow write: if isEmployee();
     }
 
     // Audit logs — değiştirilemez (Gereksinim 19.3)

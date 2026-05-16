@@ -33,7 +33,11 @@ class CustomerDetailScreen extends ConsumerWidget {
                       .read(customerRepositoryProvider)
                       .getActiveToken(customerId);
                   if (token == null) return;
-                  final url = 'https://fistik-komisyon.web.app/c/$token';
+                  // Hangi domain'de çalışıyorsa oradan al
+                  final base = Uri.base;
+                  final url = '${base.scheme}://${base.host}'
+                      '${base.port != 80 && base.port != 443 && base.port != 0 ? ':${base.port}' : ''}'
+                      '/c/$token';
                   await Clipboard.setData(ClipboardData(text: url));
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(

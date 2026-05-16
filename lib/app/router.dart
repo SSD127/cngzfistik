@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'theme_provider.dart';
 
 import '../features/auth/data/auth_repository.dart';
 import '../features/auth/presentation/login_screen.dart';
@@ -211,6 +212,15 @@ class AdminShell extends ConsumerWidget {
             ],
             selectedIndex: _selectedIndex(context),
             onDestinationSelected: (i) => _navigate(context, i),
+            trailing: Expanded(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _ThemeToggleButton(),
+                ),
+              ),
+            ),
           ),
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(child: child),
@@ -250,5 +260,29 @@ class AdminShell extends ConsumerWidget {
       '/admin/settings',
     ];
     context.go(routes[index]);
+  }
+}
+
+class _ThemeToggleButton extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = ref.watch(themeNotifierProvider) == ThemeMode.dark;
+    final extended = MediaQuery.of(context).size.width > 800;
+
+    if (extended) {
+      return SwitchListTile(
+        value: isDark,
+        onChanged: (_) => ref.read(themeNotifierProvider.notifier).toggle(),
+        secondary: Icon(isDark ? Icons.dark_mode : Icons.light_mode),
+        title: Text(isDark ? 'Karanlık' : 'Aydınlık'),
+        dense: true,
+      );
+    }
+
+    return IconButton(
+      icon: Icon(isDark ? Icons.dark_mode : Icons.light_mode),
+      tooltip: isDark ? 'Aydınlık moda geç' : 'Karanlık moda geç',
+      onPressed: () => ref.read(themeNotifierProvider.notifier).toggle(),
+    );
   }
 }
