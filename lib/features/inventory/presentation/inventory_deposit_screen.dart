@@ -112,7 +112,10 @@ class _InventoryDepositScreenState
 
     return Scaffold(
       appBar: AppBar(title: const Text('Emanet Fıstık Girişi')),
-      body: SingleChildScrollView(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 680),
+          child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
@@ -237,6 +240,8 @@ class _InventoryDepositScreenState
                 onPressed: _loading ? null : _submit,
               ),
             ],
+          ),
+        ),
           ),
         ),
       ),

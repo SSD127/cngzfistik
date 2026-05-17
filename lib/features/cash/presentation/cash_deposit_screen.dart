@@ -62,63 +62,68 @@ class _CashDepositScreenState extends ConsumerState<CashDepositScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Para Girişi')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              customersAsync.when(
-                loading: () => const CircularProgressIndicator(),
-                error: (e, _) => Text('$e'),
-                data: (customers) => DropdownButtonFormField<String>(
-                  value: _customerId,
-                  decoration: const InputDecoration(labelText: 'Müşteri'),
-                  items: customers.map((c) => DropdownMenuItem(
-                    value: c.id,
-                    child: Text('${c.fullName} — ${Currency.formatCents(c.cashBalanceCents)}'),
-                  )).toList(),
-                  onChanged: (v) => setState(() => _customerId = v),
-                  validator: (v) => v == null ? 'Müşteri seçin' : null,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _amountCtrl,
-                decoration: const InputDecoration(labelText: 'Tutar (TL)', suffixText: '₺'),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Tutar girin';
-                  final n = double.tryParse(v.replaceAll(',', '.'));
-                  if (n == null || n <= 0) return 'Geçerli tutar girin';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descCtrl,
-                decoration: const InputDecoration(labelText: 'Açıklama (isteğe bağlı)'),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Card(
-                  color: Colors.red.shade50,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Text(_error!, style: const TextStyle(color: Colors.red)),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 680),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  customersAsync.when(
+                    loading: () => const CircularProgressIndicator(),
+                    error: (e, _) => Text('$e'),
+                    data: (customers) => DropdownButtonFormField<String>(
+                      value: _customerId,
+                      decoration: const InputDecoration(labelText: 'Müşteri'),
+                      items: customers.map((c) => DropdownMenuItem(
+                        value: c.id,
+                        child: Text('${c.fullName} — ${Currency.formatCents(c.cashBalanceCents)}'),
+                      )).toList(),
+                      onChanged: (v) => setState(() => _customerId = v),
+                      validator: (v) => v == null ? 'Müşteri seçin' : null,
+                    ),
                   ),
-                ),
-              ],
-              const SizedBox(height: 24),
-              FilledButton.icon(
-                icon: const Icon(Icons.add_card),
-                label: _loading
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Kaydet'),
-                onPressed: _loading ? null : _submit,
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _amountCtrl,
+                    decoration: const InputDecoration(labelText: 'Tutar (TL)', suffixText: '₺'),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Tutar girin';
+                      final n = double.tryParse(v.replaceAll(',', '.'));
+                      if (n == null || n <= 0) return 'Geçerli tutar girin';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _descCtrl,
+                    decoration: const InputDecoration(labelText: 'Açıklama (isteğe bağlı)'),
+                  ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 12),
+                    Card(
+                      color: Colors.red.shade50,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text(_error!, style: const TextStyle(color: Colors.red)),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  FilledButton.icon(
+                    icon: const Icon(Icons.add_card),
+                    label: _loading
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('Kaydet'),
+                    onPressed: _loading ? null : _submit,
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

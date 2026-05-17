@@ -44,87 +44,79 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final error = authState is AsyncError ? authState.error.toString() : null;
 
     return Scaffold(
-      body: Row(
-        children: [
-          // Sol panel — marka alanı
-          Expanded(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF2E7D32), Color(0xFF66BB6A)],
-                ),
-              ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _LogoIcon(),
-                  SizedBox(height: 24),
-                  Text(
-                    'Fıstık Komisyon',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Profesyonel Depo & Kasa Yönetimi',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 15,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 48),
-                  _FeatureItem(icon: Icons.inventory_2_outlined, text: 'Emanet Fıstık Takibi'),
-                  SizedBox(height: 12),
-                  _FeatureItem(icon: Icons.account_balance_wallet_outlined, text: 'Kasa & Bakiye Yönetimi'),
-                  SizedBox(height: 12),
-                  _FeatureItem(icon: Icons.bar_chart_outlined, text: 'Gelişmiş Raporlama'),
-                  SizedBox(height: 12),
-                  _FeatureItem(icon: Icons.link, text: 'Müşteriye Özel Sayfa'),
-                ],
-              ),
-            ),
-          ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth > 700;
+          final form = _LoginForm(
+            formKey: _formKey,
+            emailController: _emailController,
+            passwordController: _passwordController,
+            obscurePassword: _obscurePassword,
+            onTogglePassword: () =>
+                setState(() => _obscurePassword = !_obscurePassword),
+            isLoading: isLoading,
+            error: error != null ? _localizeError(error) : null,
+            onSubmit: _submit,
+          );
 
-          // Sağ panel — giriş formu (sadece büyük ekranda göster)
-          if (MediaQuery.of(context).size.width > 700)
-            SizedBox(
-              width: 420,
-              child: _LoginForm(
-                formKey: _formKey,
-                emailController: _emailController,
-                passwordController: _passwordController,
-                obscurePassword: _obscurePassword,
-                onTogglePassword: () =>
-                    setState(() => _obscurePassword = !_obscurePassword),
-                isLoading: isLoading,
-                error: error != null ? _localizeError(error) : null,
-                onSubmit: _submit,
-              ),
-            )
-          else
-            // Küçük ekranda form sol panelin üstüne gelir
-            Expanded(
-              child: _LoginForm(
-                formKey: _formKey,
-                emailController: _emailController,
-                passwordController: _passwordController,
-                obscurePassword: _obscurePassword,
-                onTogglePassword: () =>
-                    setState(() => _obscurePassword = !_obscurePassword),
-                isLoading: isLoading,
-                error: error != null ? _localizeError(error) : null,
-                onSubmit: _submit,
-              ),
-            ),
-        ],
+          return Row(
+            children: [
+              // Sol panel — yalnızca geniş ekranda göster
+              if (isWide)
+                Expanded(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF2E7D32), Color(0xFF66BB6A)],
+                      ),
+                    ),
+                    child: const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _LogoIcon(),
+                        SizedBox(height: 24),
+                        Text(
+                          'Fıstık Komisyon',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Profesyonel Depo & Kasa Yönetimi',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 15,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 48),
+                        _FeatureItem(icon: Icons.inventory_2_outlined, text: 'Emanet Fıstık Takibi'),
+                        SizedBox(height: 12),
+                        _FeatureItem(icon: Icons.account_balance_wallet_outlined, text: 'Kasa & Bakiye Yönetimi'),
+                        SizedBox(height: 12),
+                        _FeatureItem(icon: Icons.bar_chart_outlined, text: 'Gelişmiş Raporlama'),
+                        SizedBox(height: 12),
+                        _FeatureItem(icon: Icons.link, text: 'Müşteriye Özel Sayfa'),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // Giriş formu
+              if (isWide)
+                SizedBox(width: 420, child: form)
+              else
+                Expanded(child: form),
+            ],
+          );
+        },
       ),
     );
   }

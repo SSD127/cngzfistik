@@ -50,122 +50,134 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
           final grandTotal =
               filtered.fold<int>(0, (s, e) => s + e.amountCents);
 
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: 240,
-                child: Card(
-                  margin: const EdgeInsets.all(12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth > 600;
+
+              final categoryPanel = Card(
+                margin: const EdgeInsets.all(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Kategoriler',
+                          style: Theme.of(context).textTheme.titleSmall),
+                      const SizedBox(height: 8),
+                      _CategoryFilterTile(
+                        label: 'Tümü',
+                        amount: expenses.fold<int>(0, (s, e) => s + e.amountCents),
+                        isSelected: _selectedCategory == null,
+                        onTap: () => setState(() => _selectedCategory = null),
+                      ),
+                      const Divider(),
+                      ...ExpenseCategory.values.map((cat) {
+                        final label = switch (cat) {
+                          ExpenseCategory.transport => 'Nakliye',
+                          ExpenseCategory.labor => 'Hammaliye',
+                          ExpenseCategory.invoice => 'Fatura',
+                          ExpenseCategory.creditCard => 'Kredi Kartı',
+                          ExpenseCategory.other => 'Diğer',
+                        };
+                        return _CategoryFilterTile(
+                          label: label,
+                          amount: totals[cat] ?? 0,
+                          isSelected: _selectedCategory == cat,
+                          onTap: () => setState(() => _selectedCategory = cat),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              );
+
+              final listPanel = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 12, 16, 0),
+                    child: Row(
                       children: [
-                        Text('Kategoriler',
-                            style: Theme.of(context).textTheme.titleSmall),
-                        const SizedBox(height: 8),
-                        _CategoryFilterTile(
-                          label: 'Tümü',
-                          amount: expenses.fold<int>(
-                              0, (s, e) => s + e.amountCents),
-                          isSelected: _selectedCategory == null,
-                          onTap: () =>
-                              setState(() => _selectedCategory = null),
+                        Text(
+                          'Toplam: ${Currency.formatCents(grandTotal)}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
-                        const Divider(),
-                        ...ExpenseCategory.values.map((cat) {
-                          final label = switch (cat) {
-                            ExpenseCategory.transport => 'Nakliye',
-                            ExpenseCategory.labor => 'Hammaliye',
-                            ExpenseCategory.invoice => 'Fatura',
-                            ExpenseCategory.creditCard => 'Kredi Kartı',
-                            ExpenseCategory.other => 'Diğer',
-                          };
-                          return _CategoryFilterTile(
-                            label: label,
-                            amount: totals[cat] ?? 0,
-                            isSelected: _selectedCategory == cat,
-                            onTap: () =>
-                                setState(() => _selectedCategory = cat),
-                          );
-                        }),
+                        const Spacer(),
+                        Text('${filtered.length} kayıt',
+                            style: Theme.of(context).textTheme.bodySmall),
                       ],
                     ),
                   ),
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 12, 16, 0),
-                      child: Row(
-                        children: [
-                          Text(
-                            'Toplam: ${Currency.formatCents(grandTotal)}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          const Spacer(),
-                          Text('${filtered.length} kayıt',
-                              style: Theme.of(context).textTheme.bodySmall),
-                        ],
-                      ),
-                    ),
-                    if (byMonth.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 48,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          children: byMonth.entries
-                              .map((e) => Padding(
-                                    padding: const EdgeInsets.only(right: 8),
-                                    child: Chip(
-                                      label: Text(
-                                          '${e.key}: ${Currency.formatCents(e.value)}'),
-                                    ),
-                                  ))
-                              .toList(),
-                        ),
-                      ),
-                    ],
-                    Expanded(
-                      child: filtered.isEmpty
-                          ? const Center(child: Text('Gider kaydı yok'))
-                          : ListView.builder(
-                              padding: const EdgeInsets.all(8),
-                              itemCount: filtered.length,
-                              itemBuilder: (context, i) {
-                                final expense = filtered[i];
-                                return ListTile(
-                                  leading: const Icon(Icons.receipt_long),
-                                  title: Text(expense.description.isEmpty
-                                      ? expense.categoryLabel
-                                      : expense.description),
-                                  subtitle: Text(
-                                    '${expense.categoryLabel} • ${_formatDate(expense.date)}',
-                                    style: Theme.of(context).textTheme.bodySmall,
+                  if (byMonth.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 48,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        children: byMonth.entries
+                            .map((e) => Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: Chip(
+                                    label: Text(
+                                        '${e.key}: ${Currency.formatCents(e.value)}'),
                                   ),
-                                  trailing: Text(
-                                    Currency.formatCents(expense.amountCents),
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.red),
-                                  ),
-                                );
-                              },
-                            ),
+                                ))
+                            .toList(),
+                      ),
                     ),
                   ],
-                ),
-              ),
-            ],
+                  Expanded(
+                    child: filtered.isEmpty
+                        ? const Center(child: Text('Gider kaydı yok'))
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(8),
+                            itemCount: filtered.length,
+                            itemBuilder: (context, i) {
+                              final expense = filtered[i];
+                              return ListTile(
+                                leading: const Icon(Icons.receipt_long),
+                                title: Text(expense.description.isEmpty
+                                    ? expense.categoryLabel
+                                    : expense.description),
+                                subtitle: Text(
+                                  '${expense.categoryLabel} • ${_formatDate(expense.date)}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                                trailing: Text(
+                                  Currency.formatCents(expense.amountCents),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              );
+
+              if (isWide) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(width: 240, child: categoryPanel),
+                    Expanded(child: listPanel),
+                  ],
+                );
+              }
+
+              // Dar ekran: kategori filtresi üstte, liste altta
+              return Column(
+                children: [
+                  categoryPanel,
+                  Expanded(child: listPanel),
+                ],
+              );
+            },
           );
         },
       ),

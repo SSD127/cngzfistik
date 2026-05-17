@@ -10,7 +10,7 @@ String _$routerHash() => r'98377c4a96792c56fcf7569d1ea55beafbccdc34';
 
 /// See also [router].
 @ProviderFor(router)
-final routerProvider = AutoDisposeProvider<GoRouter>.internal(
+final routerProvider = Provider<GoRouter>.internal(
   router,
   name: r'routerProvider',
   debugGetCreateSourceHash:
@@ -21,6 +21,6 @@ final routerProvider = AutoDisposeProvider<GoRouter>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef RouterRef = AutoDisposeProviderRef<GoRouter>;
+typedef RouterRef = ProviderRef<GoRouter>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

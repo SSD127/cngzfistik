@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -26,14 +27,21 @@ import '../features/settings/presentation/settings_screen.dart';
 
 part 'router.g.dart';
 
-@riverpod
+// Router bir kez oluşturulur; auth değişimlerinde refreshListenable üzerinden
+// redirect yeniden değerlendirilir — GoRouter hiçbir zaman yeniden yaratılmaz.
+@Riverpod(keepAlive: true)
 GoRouter router(Ref ref) {
-  final authState = ref.watch(authStateProvider);
+  final authNotifier = _GoRouterAuthNotifier(ref);
+  ref.onDispose(authNotifier.dispose);
 
   return GoRouter(
     initialLocation: '/login',
+    refreshListenable: authNotifier,
     redirect: (context, state) {
-      final isLoggedIn = authState.valueOrNull != null;
+      // Auth henüz yüklenmediyse yönlendirme yapma (beyaz ekran önlenir)
+      if (authNotifier.isLoading) return null;
+
+      final isLoggedIn = authNotifier.isLoggedIn;
       final isLoggingIn = state.matchedLocation == '/login';
       final isCustomerPage = state.matchedLocation.startsWith('/c/');
 
@@ -261,6 +269,27 @@ class AdminShell extends ConsumerWidget {
     ];
     context.go(routes[index]);
   }
+}
+
+/// GoRouter'ın refreshListenable'ı — auth state değişimlerini GoRouter'a bildirir.
+/// Bu sınıf sayesinde router yeniden yaratılmak yerine yalnızca redirect
+/// fonksiyonu yeniden çalıştırılır.
+class _GoRouterAuthNotifier extends ChangeNotifier {
+  _GoRouterAuthNotifier(Ref ref) {
+    ref.listen<AsyncValue<User?>>(
+      authStateProvider,
+      (_, next) {
+        _authState = next;
+        notifyListeners();
+      },
+      fireImmediately: true,
+    );
+  }
+
+  AsyncValue<User?> _authState = const AsyncValue.loading();
+
+  bool get isLoading => _authState.isLoading;
+  bool get isLoggedIn => _authState.valueOrNull != null;
 }
 
 class _ThemeToggleButton extends ConsumerWidget {

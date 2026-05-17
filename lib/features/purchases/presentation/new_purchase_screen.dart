@@ -79,7 +79,10 @@ class _NewPurchaseScreenState extends ConsumerState<NewPurchaseScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Yeni Alım')),
-      body: SingleChildScrollView(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 680),
+          child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
@@ -193,6 +196,8 @@ class _NewPurchaseScreenState extends ConsumerState<NewPurchaseScreen> {
                 onPressed: _loading ? null : _submit,
               ),
             ],
+          ),
+        ),
           ),
         ),
       ),

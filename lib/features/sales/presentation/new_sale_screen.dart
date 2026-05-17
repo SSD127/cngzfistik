@@ -116,7 +116,10 @@ class _NewSaleScreenState extends ConsumerState<NewSaleScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Yeni Satış')),
-      body: SingleChildScrollView(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 680),
+          child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
@@ -256,13 +259,17 @@ class _NewSaleScreenState extends ConsumerState<NewSaleScreen> {
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text('Hesaplama:'),
-                            Text(
-                              '${_qtyCtrl.text} kg × '
-                              '${_innerGramCtrl.text}% iç × '
-                              '${_priceCtrl.text} ₺/kg',
-                              style: const TextStyle(color: Colors.grey),
+                            Flexible(
+                              child: Text(
+                                '${_qtyCtrl.text} kg × '
+                                '${_innerGramCtrl.text}% iç × '
+                                '${_priceCtrl.text} ₺/kg',
+                                style: const TextStyle(color: Colors.grey),
+                                textAlign: TextAlign.end,
+                              ),
                             ),
                           ],
                         ),
@@ -314,6 +321,8 @@ class _NewSaleScreenState extends ConsumerState<NewSaleScreen> {
                 onPressed: _loading ? null : _submit,
               ),
             ],
+          ),
+        ),
           ),
         ),
       ),
