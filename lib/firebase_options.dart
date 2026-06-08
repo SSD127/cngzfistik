@@ -16,7 +16,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCSbt13Fcn5Uhym5eD6pCW4cwN__H_8dyc',
+    apiKey: 'ssd',
     authDomain: 'fistik-komisyon.firebaseapp.com',
     projectId: 'fistik-komisyon',
     storageBucket: 'fistik-komisyon.firebasestorage.app',
